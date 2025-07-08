@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1200, initial-scale=1.0" />
+  <title>Alvianz Store - Digital Casino Shop</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <style>
+    :root {
+      --primary: #00ffc8;
+      --secondary: #ff2dff;
+      --dark-bg: #0f0f0f;
+      --card-bg: #18181a;
+      --glow: 0 0 32px var(--primary), 0 0 24px var(--secondary);
+      --radius: 18px;
+      --shadow: 0 2px 24px #0ff6, 0 0 12px #fff2;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: var(--dark-bg);
+      color: #fff;
+      font-family: 'Poppins', Arial, sans-serif;
+      scroll-behavior: smooth;
+    }
+    body {
+      position: relative;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      z-index: 2;
+      position: relative;
+    }
+    /* LOGIN MODAL */
+    .login-modal-bg {
+      background: rgba(10,10,20,0.96);
+      position: fixed;
+      z-index: 1100;
+      left: 0; right: 0; top: 0; bottom: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity .3s;
+    }
+    .login-modal {
+      background: linear-gradient(120deg, #12121a 80%, #1a0039 130%);
+      border-radius: 22px;
+      box-shadow: 0 0 36px #0ff7, 0 0 14px #ff2dff66;
+      padding: 38px 36px 32px 36px;
+      min-width: 320px;
+      max-width: 98vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      border: 2.5px solid var(--primary);
+    }
+    .login-logo {
+      width: 66px;
+      height: 66px;
+      border-radius: 18px;
+      box-shadow: 0 0 18px #00ffc8cc;
+      background: #1b1b2f;
+      object-fit: cover;
+      margin-bottom: 14px;
+      margin-top: -24px;
+    }
+    .login-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.57rem;
+      color: var(--primary);
+      margin-bottom: 8px;
+      text-shadow: 0 0 12px var(--secondary);
+      letter-spacing: 2px;
+    }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      margin-top: 18px;
+      width: 100%;
+      min-width: 245px;
+    }
+    .login-form input {
+      padding: 12px 14px;
+      border-radius: 9px;
+      border: none;
+      background: #23234b;
+      color: #fff;
+      font-size: 1.07rem;
+      font-family: 'Orbitron',sans-serif;
+      letter-spacing: 1px;
+      outline: none;
+      transition: box-shadow .2s;
+      box-shadow: 0 0 8px #0ff3;
+    }
+    .login-form input:focus {
+      box-shadow: 0 0 18px #0ff, 0 0 8px #fff;
+      background: #23234b;
+    }
+    .login-form button {
+      padding: 13px 0;
+      margin-top: 10px;
+      border-radius: 11px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: #222;
+      font-family: 'Orbitron',sans-serif;
+      font-weight: bold;
+      font-size: 1.18rem;
+      letter-spacing: 1.2px;
+      box-shadow: 0 0 10px #0ff7;
+      transition: background 0.2s, color 0.2s, scale 0.1s;
+    }
+    .login-form button:hover {
+      background: #fff01c;
+      color: #000;
+      scale: 1.04;
+    }
+    .login-error {
+      color: #ff3b71;
+      font-size: 1.01rem;
+      margin-top: 6px;
+      text-align: center;
+      font-weight: 600;
+      min-height: 22px;
+      letter-spacing: .5px;
+    }
+    .login-switch {
+      color: #fff;
+      text-align: center;
+      margin-top: 13px;
+      font-size: 0.98rem;
+      letter-spacing: .3px;
+    }
+    .login-switch span {
+      color: var(--primary);
+      font-family: 'Orbitron',sans-serif;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    /* HEADER + NAV */
+    header {
+      background: #18181a;
+      box-shadow: var(--glow);
+      padding: 20px 0 10px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1.5px solid #222;
+    }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .logo-img {
+      height: 48px;
+      filter: drop-shadow(0 0 8px var(--primary));
+      border-radius: 10px;
+      background: #23232399;
+      padding: 2px;
+    }
+    .brand {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.1rem;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      color: var(--primary);
+      text-shadow: 0 0 24px var(--secondary), 0 0 8px #fff;
+    }
+    nav {
+      margin-left: auto;
+      display: flex;
+      gap: 26px;
+    }
+    nav a {
+      color: #fff;
+      font-family: 'Orbitron',sans-serif;
+      font-weight: 400;
+      font-size: 1.1rem;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      position: relative;
+      transition: color 0.2s;
+    }
+    nav a:after {
+      content: '';
+      display: block;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: width .3s;
+      border-radius: 2px;
+      position: absolute;
+      bottom: -4px; left: 0;
+    }
+    nav a:hover, nav a.active {
+      color: var(--primary);
+    }
+    nav a:hover:after, nav a.active:after {
+      width: 100%;
+    }
+
+    /* MARQUEE PROMO */
+    .promo-marquee {
+      margin: 32px 0 0 0;
+      font-family: 'Orbitron',sans-serif;
+      font-size: 1.15rem;
+      color: var(--primary);
+      background: linear-gradient(90deg, #23234b 60%, #2b0030 120%);
+      padding: 12px 0;
+      border-radius: 10px;
+      box-shadow: 0 0 18px #ff00e9a9, 0 0 10px #00f9;
+      text-shadow: 0 0 8px #fffa, 0 0 16px #0f08;
+      overflow: hidden;
+    }
+    .promo-marquee marquee {
+      font-size: 1.22rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+    }
+
+    /* CAROUSEL */
+    .carousel-section {
+      margin: 38px 0 38px 0;
+      padding: 38px 0 18px 0;
+      background: linear-gradient(100deg, #1b2030 60%, #2a0040 100%);
+      border-radius: var(--radius);
+      box-shadow: 0 0 34px #00ffc86c, 0 0 16px #ff2dff3b;
+      position: relative;
+      overflow: visible;
+      z-index: 2;
+    }
+    .carousel-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      box-shadow: var(--shadow);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .carousel-img {
+      width: 100%;
+      max-height: 340px;
+      object-fit: cover;
+      border-radius: 20px;
+      transition: box-shadow .3s;
+      box-shadow: 0 0 28px #0ff9, 0 0 12px #fff1;
+      display: block;
+    }
+    .carousel-controls {
+      display: flex;
+      gap: 14px;
+      margin: 18px auto 0 auto;
+      justify-content: center;
+    }
+    .carousel-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff3;
+      border: 2px solid var(--primary);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      margin-top: 7px;
+    }
+    .carousel-dot.active {
+      background: var(--primary);
+      border-color: #fff;
+      box-shadow: 0 0 8px var(--secondary);
+    }
+
+    /* PRODUCT SECTION */
+    .section-title {
+      font-family: 'Orbitron',sans-serif;
+      font-size: 2rem;
+      color: var(--primary);
+      letter-spacing: 2px;
+      text-shadow: 0 0 16px var(--secondary), 0 0 12px #fff5;
+      margin-bottom: 28px;
+      margin-top: 62px;
+    }
+    .products-horizontal-scroll {
+      display: flex;
+      gap: 32px;
+      overflow-x: auto;
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary) #232323;
+    }
+    .products-horizontal-scroll::-webkit-scrollbar {
+      height: 10px;
+      background: #232323;
+    }
+    .products-horizontal-scroll::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 6px;
+    }
+    .product-card {
+      flex: 0 0 340px;
+      background: var(--card-bg);
+      border-radius: 22px;
+      box-shadow: 0 0 20px #0ff6, 0 0 8px #fff4;
+      padding: 20px 18px 26px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: box-shadow 0.2s, transform 0.15s;
+      border: 2.2px solid transparent;
+      z-index: 1;
+      min-height: 410px;
+    }
+    .product-card:hover {
+      box-shadow: 0 0 40px #0ff9, 0 0 22px #fff7;
+      border-color: var(--primary);
+      transform: translateY(-6px) scale(1.03);
+    }
+    .product-card img {
+      width: 100%;
+      max-width: 310px;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 14px;
+      box-shadow: 0 0 14px #fff8, 0 0 22px #0ff2;
+      border: 1.5px solid #fff3;
+    }
+    .product-card h3 {
+      font-family: 'Orbitron',sans-serif;
+      margin: 18px 0 10px 0;
+      font-size: 1.1rem;
+      color: var(--primary);
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 10px var(--secondary);
+      font-weight: 700;
+      text-align: center;
+    }
+    .harga span {
+      display: block;
+      margin: 2px 0;
+      font-size: 1.01rem;
+      color: #fff;
+      font-weight: 600;
+      text-shadow: 0 0 5px #0ff3;
+    }
+    .product-card button {
+      margin-top: 18px;
+      padding: 12px 32px;
+      font-size: 1.13rem;
+      border-radius: 14px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: #222;
+      font-family: 'Orbitron',sans-serif;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      text-shadow: 0 0 4px #fff;
+      transition: background 0.2s, color 0.2s, scale 0.1s;
+      box-shadow: 0 0 10px #0ff7;
+      letter-spacing: 1.1px;
+    }
+    .product-card button:hover {
+      background: #fff01c;
+      color: #000;
+      scale: 1.06;
+      box-shadow: 0 0 20px #ff0, 0 0 12px #fff;
+    }
+
+    /* DASHBOARD */
+    .dashbox {
+      background: linear-gradient(110deg,#18181a 80%,#2a0030 150%);
+      border-radius: 18px;
+      box-shadow: 0 0 12px #0ff8, 0 0 8px #ff2dff55;
+      padding: 24px 32px 18px 32px;
+      display: flex;
+      flex-direction: row;
+      gap: 38px;
+      align-items: center;
+      margin-top: 45px;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+      flex-wrap: wrap;
+    }
+    .dash-profile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 160px;
+      max-width: 180px;
+    }
+    .dash-profile img {
+      width: 66px; height: 66px;
+      border-radius: 20px;
+      border: 2.5px solid var(--primary);
+      box-shadow: 0 0 16px #00ffc8cc;
+      object-fit: cover;
+      background: #292934;
+    }
+    .dash-profile .dash-user {
+      font-family: 'Orbitron',sans-serif;
+      font-size: 1.13rem;
+      color: #fff;
+      text-shadow: 0 0 10px var(--primary);
+      margin-top: 5px;
+      font-weight: 600;
+      word-break: break-all;
+    }
+    .dash-profile .logout-btn {
+      margin-top: 7px;
+      padding: 7px 24px;
+      border-radius: 10px;
+      font-family: 'Orbitron',sans-serif;
+      background: #ff2dff;
+      color: #fff;
+      border: none;
+      font-size: .93rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 12px #ff2dff88;
+      transition: background .2s, color .2s;
+    }
+    .dash-profile .logout-btn:hover {
+      background: #fff01c;
+      color: #000;
+    }
+    .dash-info {
+      flex: 1;
+      min-width: 200px;
+      color: #fff;
+    }
+    .dash-info .coin-balance {
+      font-family: 'Orbitron',sans-serif;
+      font-size: 1.6rem;
+      color: var(--primary);
+      text-shadow: 0 0 18px var(--secondary);
+      margin-bottom: 12px;
+      margin-top: 6px;
+      font-weight: 700;
+    }
+    .dash-info .deposit-btn {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: #111;
+      font-family: 'Orbitron',sans-serif;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 9px;
+      padding: 10px 30px;
+      font-weight: bold;
+      box-shadow: 0 0 12px #0ff6;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background .2s, color .2s, scale .1s;
+    }
+    .dash-info .deposit-btn:hover {
+      background: #fff01c;
+      color: #000;
+      scale: 1.04;
+    }
+    .dash-info .riwayat-btn {
+      margin-left: 18px;
+      background: #292934;
+      color: #fff;
+      border-radius: 8px;
+      font-family: 'Poppins',sans-serif;
+      padding: 7px 20px;
+      border: none;
+      box-shadow: 0 0 4px #fff3;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background .2s;
+    }
+    .dash-info .riwayat-btn:hover {
+      background: var(--secondary);
+      color: #fff;
+    }
+    .deposit-popup {
+      position: fixed;
+      z-index: 1500;
+      left: 0; right: 0; top: 0; bottom: 0;
+      background: rgba(33,33,44,0.94);
+      display: flex; justify-content: center; align-items: center;
+      transition: opacity .25s;
+    }
+    .deposit-modal {
+      background: #191926;
+      border-radius: 18px;
+      box-shadow: 0 0 22px #0ff7, 0 0 12px #ff2dff55;
+      padding: 32px 38px 28px 38px;
+      max-width: 98vw;
+      min-width: 310px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      border: 2.5px solid var(--primary);
+    }
+    .deposit-modal h3 {
+      font-family: 'Orbitron',sans-serif;
+      color: var(--primary);
+      letter-spacing: 2px;
+      font-size: 1.14rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .deposit-modal .close-dep {
+      position: absolute; right: 24px; top: 18px; color: #fff; font-size: 1.6rem; cursor: pointer; background: none; border: none;
+      font-weight: 800; text-shadow: 0 0 8px #0ff;
+    }
+    .deposit-modal .img-qris {
+      width: 146px; height: 146px; border-radius: 17px; border: 2.5px solid #fff;
+      object-fit:cover; margin-bottom: 12px;
+      background: #fff;
+      box-shadow: 0 0 12px #ff2dff77;
+    }
+    .deposit-modal .deposit-note {
+      color: #fff;
+      font-size: .99rem;
+      font-weight: 500;
+      margin: 6px 0 8px 0;
+      text-align:center;
+    }
+    .deposit-modal .deposit-kontak {
+      margin-top: 7px;
+      font-size: 1.07rem;
+      color: var(--primary);
+      font-weight: bold;
+      text-align:center;
+    }
+    .deposit-modal .via {
+      background: #23234b;
+      padding: 7px 16px;
+      border-radius: 8px;
+      color: #fff;
+      margin: 3px 0;
+      font-size: .98rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+    /* COIN ANIMATION */
+    .coin-animation {
+      pointer-events: none;
+      position:fixed;
+      left:0;top:0;width:100vw;height:100vh;z-index:0;
+    }
+    /* FOOTER */
+    footer {
+      margin-top: 62px;
+      padding: 24px 0 18px 0;
+      background: #161616;
+      text-align: center;
+      font-size: 1.09rem;
+      color: #aaa;
+      border-top: 1.5px solid #2a2a2a;
+      letter-spacing: 1px;
+      box-shadow: 0 -2px 14px #0ff2;
+      position: relative;
+      z-index: 2;
+    }
+    footer span {
+      font-size:0.9em;color:#0ff6;
+    }
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .container {padding:24px 4vw;}
+      .carousel-section {margin:32px 0 32px 0;padding:24px 0 14px 0;}
+      .products-horizontal-scroll {gap:18px;}
+      .product-card {flex-basis:240px;min-height:380px;}
+      .section-title {font-size:1.45rem;}
+      nav {gap:16px;}
+      .logo-img {height:36px;}
+      .brand {font-size:1.3rem;}
+      .dashbox {padding:18px 12px 14px 12px;}
+    }
+    @media (max-width: 600px) {
+      .container {padding:14px 2vw;}
+      .carousel-section {margin:16px 0;}
+      .promo-marquee {font-size:1rem;}
+      .products-horizontal-scroll {gap:10px;}
+      .product-card {flex-basis:170px;min-height:320px;padding:12px 6px;}
+      .product-card img {height:85px;}
+      .section-title {font-size:1.1rem;}
+      nav {gap:7px;}
+      .logo-img {height:24px;}
+      .brand {font-size:1.07rem;}
+      .dashbox {gap:10px;flex-direction:column;}
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN MODAL -->
+  <div id="login-bg" class="login-modal-bg" style="display:flex;">
+    <form class="login-modal" id="loginform" autocomplete="off">
+      <img src="https://i.imgur.com/1hHRtTJ.png" alt="Alvianz Store" class="login-logo" />
+      <div class="login-title">ALVIANZ LOGIN</div>
+      <div class="login-form">
+        <input type="text" id="user" placeholder="Nama Pengguna" autocomplete="username" required />
+        <input type="password" id="pass" placeholder="Password" autocomplete="current-password" required />
+        <button type="submit" id="btnlogin">Login</button>
+        <div class="login-error" id="loginerr"></div>
+      </div>
+      <div class="login-switch">
+        Belum punya akun? <span onclick="showRegister()">Daftar</span>
+      </div>
+    </form>
+    <form class="login-modal" id="registerform" style="display:none" autocomplete="off">
+      <img src="https://i.imgur.com/1hHRtTJ.png" alt="Alvianz Store" class="login-logo" />
+      <div class="login-title">REGISTER</div>
+      <div class="login-form">
+        <input type="text" id="reguser" placeholder="Nama Pengguna Unik" required />
+        <input type="password" id="regpass" placeholder="Password" required />
+        <button type="submit" id="btnreg">Daftar</button>
+        <div class="login-error" id="regerr"></div>
+      </div>
+      <div class="login-switch">
+        Sudah punya akun? <span onclick="showLogin()">Login</span>
+      </div>
+    </form>
+  </div>
+  <!-- END LOGIN MODAL -->
+
+  <header>
+    <div class="container" style="display:flex;align-items:center;">
+      <div class="logo-area">
+        <img src="https://i.imgur.com/1hHRtTJ.png" alt="Alvianz Store" class="logo-img" />
+        <span class="brand">ALVIANZ STORE</span>
+      </div>
+      <nav>
+        <a href="#" class="active">Dashboard</a>
+        <a href="#">Testimoni</a>
+        <a href="#">Akun Saya</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="container" id="main-content" style="display:none;">
+      <section class="dashbox">
+        <div class="dash-profile">
+          <img id="userpic" src="https://ui-avatars.com/api/?name=User&background=0ff&color=222" alt="Foto Profil" />
+          <div class="dash-user" id="userdash">-</div>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        <div class="dash-info">
+          <div>Saldo Coin Kamu:</div>
+          <div class="coin-balance" id="coindash">0 Coin</div>
+          <button class="deposit-btn" onclick="openDeposit()">Deposit Coin</button>
+          <button class="riwayat-btn" onclick="alert('Fitur Riwayat Segera Hadir')">Riwayat</button>
+        </div>
+      </section>
+      <div class="promo-marquee">
+        <marquee scrollamount="7">
+          Bosen main slot kalah trus? Saatnya jadi bandar! Modal kecil, untung besar. Gaya sultan, kerja cerdas!!
+        </marquee>
+      </div>
+      <section class="carousel-section">
+        <div class="carousel-wrapper">
+          <img id="banner-carousel" class="carousel-img" src="https://img1.pixhost.to/images/7057/619818437_malzhost.jpg" alt="Banner" />
+        </div>
+        <div class="carousel-controls" id="carousel-dots"></div>
+      </section>
+      <h2 class="section-title">Produk Digital Premium</h2>
+      <div class="products-horizontal-scroll" id="produk-list"></div>
+    </div>
+    <section class="coin-animation">
+      <canvas id="coinCanvas"></canvas>
+    </section>
+    <!-- DEPOSIT POPUP -->
+    <div class="deposit-popup" id="depositpop" style="display:none;">
+      <div class="deposit-modal">
+        <button class="close-dep" onclick="closeDeposit()">&times;</button>
+        <h3>Deposit Coin</h3>
+        <img src="https://i.imghippo.com/files/YqEh9143w.png" alt="QRIS" class="img-qris" />
+        <div class="via">QRIS</div>
+        <div class="deposit-note">Scan QRIS di atas untuk transfer sesuai jumlah coin.<br> 1 Coin = Rp 1.000</div>
+        <div class="via">DANA</div>
+        <div class="deposit-note">Transfer ke: <b>083142313394</b></div>
+        <div class="deposit-kontak">Konfirmasi otomatis ke WhatsApp: <a href="https://wa.me/6283140670847" target="_blank" style="color:#00ffc8;">6283140670847</a></div>
+      </div>
+    </div>
+    <!-- END DEPOSIT -->
+  </main>
+  <footer>
+    &copy; 2025 Alvianz Store. All Rights Reserved.<br>
+    <span>
+      1 Coin = Rp1.000 &nbsp; | &nbsp; Deposit via QRIS & DANA &nbsp; | &nbsp; Hubungi Admin via WhatsApp
+    </span>
+  </footer>
+  <script>
+    // --- FIREBASE ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyCn7CiwINqT5JQZHJlKjTOLRMFu99HE9Sw",
+      authDomain: "alvianz-panel.firebaseapp.com",
+      databaseURL: "https://alvianz-panel-default-rtdb.firebaseio.com",
+      projectId: "alvianz-panel",
+      storageBucket: "alvianz-panel.appspot.com",
+      messagingSenderId: "213485076946",
+      appId: "1:213485076946:web:af953b3cfcc4f19400c80b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // --- LOGIN/REGISTER UI ---
+    function showLogin() {
+      document.getElementById('loginform').style.display = '';
+      document.getElementById('registerform').style.display = 'none';
+      document.getElementById('loginerr').innerText = '';
+      document.getElementById('user').focus();
+    }
+    function showRegister() {
+      document.getElementById('loginform').style.display = 'none';
+      document.getElementById('registerform').style.display = '';
+      document.getElementById('regerr').innerText = '';
+      document.getElementById('reguser').focus();
+    }
+
+    // --- AUTH LOGIC ---
+    // Username to email mapping
+    function usernameToEmail(username) {
+      return username.replace(/[^a-zA-Z0-9]/g,'').toLowerCase() + "@alvianz.id";
+    }
+
+    // --- LOGIN FORM ---
+    document.getElementById('loginform').onsubmit = function(e) {
+      e.preventDefault();
+      const username = document.getElementById('user').value.trim();
+      const password = document.getElementById('pass').value;
+      if(!username || !password) return;
+      document.getElementById('btnlogin').disabled = true;
+      document.getElementById('loginerr').innerText = "Loading...";
+      firebase.auth().signInWithEmailAndPassword(usernameToEmail(username), password)
+      .then(userCredential => {
+        // Save user to localStorage
+        localStorage.setItem('alvianz_user', username);
+        document.getElementById('login-bg').style.display = 'none';
+        showDashboard(username);
+      })
+      .catch(err => {
+        document.getElementById('loginerr').innerText = "Login gagal: "+err.message.replace("Firebase:","");
+        document.getElementById('btnlogin').disabled = false;
+      });
+    };
+
+    // --- REGISTER FORM ---
+    document.getElementById('registerform').onsubmit = function(e) {
+      e.preventDefault();
+      const username = document.getElementById('reguser').value.trim();
+      const password = document.getElementById('regpass').value;
+      if(!username || !password) return;
+      document.getElementById('btnreg').disabled = true;
+      document.getElementById('regerr').innerText = "Mendaftar...";
+      // Cek username unik
+      db.ref("usernames/"+username.toLowerCase()).once('value', snap => {
+        if(snap.exists()) {
+          document.getElementById('regerr').innerText = "Nama sudah dipakai, coba lain.";
+          document.getElementById('btnreg').disabled = false;
+        } else {
+          // Register firebase (email = username@alvianz.id)
+          firebase.auth().createUserWithEmailAndPassword(usernameToEmail(username), password)
+          .then(userCredential => {
+            const uid = userCredential.user.uid;
+            // Simpan username index untuk unik
+            db.ref("usernames/"+username.toLowerCase()).set(uid);
+            // Simpan user profile
+            db.ref("users/"+uid).set({
+              username: username,
+              coin: 0,
+              created: Date.now(),
+              photo: "",
+              streak: 1,
+              lastlogin: (new Date()).toISOString()
+            });
+            localStorage.setItem('alvianz_user', username);
+            document.getElementById('login-bg').style.display = 'none';
+            showDashboard(username);
+          })
+          .catch(err => {
+            document.getElementById('regerr').innerText = "Gagal daftar: " + err.message.replace("Firebase:","");
+            document.getElementById('btnreg').disabled = false;
+          });
+        }
+      });
+    };
+
+    // --- AUTO LOGIN IF SESSION ---
+    window.onload = function() {
+      // Efek koin
+      coinAnim();
+      // Coba auto-login
+      firebase.auth().onAuthStateChanged(function(user){
+        if(user) {
+          db.ref("users/"+user.uid).once('value', snap=>{
+            if(snap.exists()) {
+              const u = snap.val();
+              document.getElementById('login-bg').style.display = 'none';
+              showDashboard(u.username);
+            } else {
+              firebase.auth().signOut();
+              localStorage.removeItem('alvianz_user');
+              document.getElementById('login-bg').style.display = '';
+            }
+          });
+        } else {
+          document.getElementById('login-bg').style.display = '';
+        }
+      });
+    };
+
+    // --- DASHBOARD ---
+    function showDashboard(username) {
+      // Load user data
+      firebase.auth().onAuthStateChanged(function(user){
+        if(!user) return;
+        db.ref("users/"+user.uid).once('value', snap=>{
+          const u = snap.val();
+          document.getElementById('main-content').style.display = '';
+          document.getElementById('userdash').innerText = u.username;
+          document.getElementById('coindash').innerText = (u.coin||0) + " Coin";
+          document.getElementById('userpic').src = u.photo ? u.photo : "https://ui-avatars.com/api/?name="+encodeURIComponent(u.username)+"&background=0ff&color=222";
+          // Tampilkan produk
+          renderProduk();
+          carouselInit();
+        });
+      });
+    }
+    function logout() {
+      firebase.auth().signOut();
+      localStorage.removeItem('alvianz_user');
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('login-bg').style.display = '';
+    }
+
+    // --- PRODUK ---
+    const produk = [
+      {
+        nama: "TAMPILAN NEXUS",
+        gambar: "https://files.catbox.moe/uws3hf.jpg"
+      },
+      {
+        nama: "TAMPILAN MPO",
+        gambar: "https://img1.pixhost.to/images/6985/618710396_imgtmp.jpg"
+      },
+      {
+        nama: "TAMPILAN IDN",
+        gambar: "https://img1.pixhost.to/images/6985/618710873_imgtmp.jpg"
+      },
+      {
+        nama: "TAMPILAN UG",
+        gambar: "https://files.catbox.moe/8kfqt1.jpg"
+      }
+    ];
+    const harga = [
+      {label:"💎 Permanen", val:5000},
+      {label:"🔥 Sewa Harian", val:230},
+      {label:"🔥 Sewa Mingguan", val:1500},
+      {label:"🔥 Sewa Bulanan", val:3200}
+    ];
+    function renderProduk() {
+      let html = "";
+      produk.forEach(function(p){
+        html += `<div class="product-card">
+          <img src="${p.gambar}" alt="${p.nama}">
+          <h3>${p.nama}</h3>
+          <div class="harga">
+            ${harga.map(h=>`<span>${h.label}: ${h.val.toLocaleString()} coin</span>`).join("")}
+          </div>
+          <button onclick="pesanProduk('${p.nama}')">Pesan Sekarang</button>
+        </div>`;
+      });
+      document.getElementById('produk-list').innerHTML = html;
+    }
+    window.pesanProduk = function(nama){
+      alert("Loading... menghubungkan ke WhatsApp admin");
+      window.open(`https://wa.me/6283140670847?text=Halo Admin, saya ingin pesan: ${encodeURIComponent(nama)}`, "_blank");
+    }
+
+    // --- CAROUSEL ---
+    const banners = [
+      "https://img1.pixhost.to/images/7057/619818437_malzhost.jpg",
+      "https://img1.pixhost.to/images/7057/619820161_malzhost.jpg",
+      "https://img1.pixhost.to/images/7057/619820484_malzhost.jpg"
+    ];
+    let bannerIndex = 0, carouselTimer;
+    function setBanner(idx) {
+      document.getElementById('banner-carousel').src = banners[idx];
+      document.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === idx);
+      });
+    }
+    function goBanner(idx) {
+      bannerIndex = idx;
+      setBanner(idx);
+      if(carouselTimer) clearInterval(carouselTimer);
+      carouselTimer = setInterval(nextBanner, 3000);
+    }
+    function nextBanner() {
+      bannerIndex = (bannerIndex+1)%banners.length;
+      setBanner(bannerIndex);
+    }
+    function carouselInit() {
+      // Dots
+      let dotsHtml = '';
+      for(let i=0;i<banners.length;i++) {
+        dotsHtml += `<span class="carousel-dot${i==0?' active':''}" onclick="goBanner(${i})"></span>`;
+      }
+      document.getElementById('carousel-dots').innerHTML = dotsHtml;
+      setBanner(0);
+      if(carouselTimer) clearInterval(carouselTimer);
+      carouselTimer = setInterval(nextBanner, 3000);
+    }
+
+    // --- DEPOSIT ---
+    function openDeposit() {
+      document.getElementById('depositpop').style.display = '';
+    }
+    function closeDeposit() {
+      document.getElementById('depositpop').style.display = 'none';
+    }
+
+    // --- COIN ANIMATION ---
+    function coinAnim() {
+      const canvas = document.getElementById('coinCanvas');
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const ctx = canvas.getContext('2d');
+      const coins = [];
+      for(let i=0;i<32;i++){
+        coins.push({
+          x: Math.random()*canvas.width,
+          y: Math.random()*canvas.height,
+          r: 12+Math.random()*10,
+          dy: 1+Math.random()*2.1,
+          dx: (Math.random()-0.5)*1.2
+        });
+      }
+      function drawCoins() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(const c of coins){
+          // Coin body
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.r, 0, 2*Math.PI);
+          ctx.fillStyle = 'gold';
+          ctx.shadowColor = '#ff0';
+          ctx.shadowBlur = 13;
+          ctx.fill();
+          // Coin shine
+          ctx.beginPath();
+          ctx.arc(c.x-c.r/3, c.y-c.r/3, c.r/3, 0, 2*Math.PI);
+          ctx.fillStyle = '#fff7';
+          ctx.shadowBlur = 0;
+          ctx.fill();
+
+          c.y += c.dy;
+          c.x += c.dx;
+          if(c.y > canvas.height+c.r) { c.y = -c.r; c.x = Math.random()*canvas.width; }
+          if(c.x < -c.r) c.x = canvas.width+c.r;
+          if(c.x > canvas.width+c.r) c.x = -c.r;
+        }
+        requestAnimationFrame(drawCoins);
+      }
+      drawCoins();
+      window.addEventListener('resize',()=>{
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+      });
+    }
+    // --- END SCRIPT ---
+  </script>
+</body>
+</html>
